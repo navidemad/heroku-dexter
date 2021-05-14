@@ -1,0 +1,39 @@
+# Project docker compose file to start up postgres with hypopg extension.
+#
+# 1. create-extension-hypopg.sql will be run only when container will be created
+# 2. Upon running for the first time, the container will be created and the database initialized
+# 3. Subsequent times you run, the database will already be initialized
+# 4. Deleting the container removes the content
+#
+#  To run in the foreground (easiest)
+#  > docker-compose up
+#
+#  To run in the background and tail the logs
+#  > docker-compose up -d
+#  > docker-compose logs -f
+#
+#  Subsequent builds (if you change Dockerfile)
+#  > docker-compose build
+#
+version: "3.9"
+services:
+  postgres:
+    container_name: dexter-postgres-db
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PG_MAJOR: "12"
+        PG_VERSION: "12.6"
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=dexter
+      - POSTGRES_USER=dexter
+      - POSTGRES_PASSWORD=dexter
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./create-extension-hypopg.sql:/docker-entrypoint-initdb.d/create-extension-hypopg.sql      
+
+volumes:
+  pgdata: {}
